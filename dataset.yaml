@@ -1,5 +1,5 @@
-train: /root/.cache/kagglehub/datasets/fareselmenshawii/large-license-plate-dataset/versions/1/images/train  # Path to training images
-val: /root/.cache/kagglehub/datasets/fareselmenshawii/large-license-plate-dataset/versions/1/images/val     # Path to validation images
+train: /kaggle/input/large-license-plate-dataset/images/train
+val: /kaggle/input/large-license-plate-dataset/images/val
+nc: 1
+names: ['license_plate']
 
-nc: 1 
-names: ['license_plate'] 
