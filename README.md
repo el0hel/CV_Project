@@ -1,10 +1,10 @@
 # POVa Project
 Authors of the project:
-Malika Baratova
-Thaina Helena de Oliveira Alves
-Ian Caruana 
+* Malika Baratova
+* Thaina Helena de Oliveira Alves
+* Ian Caruana 
 
-# Organisational information
+## Organisational information
 cv-project.ipynb : Kaggle notebook where the final model was trained and OCR tests were conducted to compare the accuracy of PaddleOCR, EasyOCR and Tesseract.
 best.pt : Best weights of final model.
 dataset.yaml : Definition of dataset configuration.
