@@ -14,7 +14,17 @@ from torch.cuda.amp import autocast
 import cProfile
 import pstats
 
+import threading
+from queue import Queue
 profiler = cProfile.Profile()
+
+def video_writer_thread(queue, video_writer):
+    while True:
+        frame = queue.get()
+        if frame is None:
+            break
+        video_writer.write(frame)
+    video_writer.release()
 
 def distance(point1, point2):
     return math.sqrt((point2[0] - point1[0])**2 + (point2[1] - point1[1])**2)
@@ -62,6 +72,7 @@ def run_detection_video(
     
     print("Video capture object created.")
     if output_path is not None:
+        queue = Queue()
         print("Creating video writer object ...")
         output_file_path = os.path.join(output_path, "output.avi")
         video_writer = cv2.VideoWriter(
@@ -70,6 +81,8 @@ def run_detection_video(
             frame_rate,
             (frame_width, frame_height),
         )
+        writer_thread = threading.Thread(target=video_writer_thread, args=(queue, video_writer))
+        writer_thread.start()
 
         if not video_writer.isOpened():
             print(f"Error: Unable to open video file for writing {output_file_path}.")
@@ -123,7 +136,7 @@ def run_detection_video(
                 cv2.waitKey(1) 
             else:
                 for _ in range(frames_to_duplicate):
-                    video_writer.write(frame)
+                    queue.put(frame)
 
     except KeyboardInterrupt: # Ctrl+C stops the processing
         print("Interrupted! Ending ...")
@@ -137,7 +150,8 @@ def run_detection_video(
 
     video_capture.release()
     if output_path is not None:
-        video_writer.release()
+        queue.put(None)
+        writer_thread.join()
     print("Detection done.")
 
     if profile:
@@ -166,7 +180,7 @@ def run_recognition(image,ocr):
         for line in result[0]:
             add_text = re.sub(r'[^a-zA-Z0-9]', '', line[0])
             conf = line[1]
-            if len(add_text) <=7 and conf > 0.8:
+            if len(add_text) <=8 and conf > 0.5:
                 recognized_text += add_text 
 
     return recognized_text
