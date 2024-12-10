@@ -10,6 +10,7 @@ from paddleocr import PaddleOCR
 import math
 import time
 from torch.cuda.amp import autocast
+from collections import defaultdict
 
 import cProfile
 import pstats
@@ -51,7 +52,7 @@ def run_detection_video(
         profiler = cProfile.Profile()
         profiler.enable()
 
-    if video_path == None:  # input from default system camera
+    if video_path is None:  # input from default system camera
         video_capture = cv2.VideoCapture(0)
         if not video_capture.isOpened():
             exit("ERROR: Unable to read input data from camera source!")
@@ -66,9 +67,7 @@ def run_detection_video(
     frame_width = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
-    frame_interval = 1.0 / frame_rate
     start = time.time()
-
     
     print("Video capture object created.")
     if output_path is not None:
@@ -90,53 +89,60 @@ def run_detection_video(
         print("Video writer object created.")
     
     print("Detecting objects in the video...")
+    
+    ocr_results = defaultdict(list) 
+    aggregated_results = {}          
     total_frames = 0
     try:
         while video_capture.isOpened():
             ret, frame = video_capture.read()
             total_frames+=1
+
             if not ret:
                 break
-            start_time = time.time()
+
             with autocast():
-                result = yolo(frame)
-            
+                result = yolo.track(frame, persist=True, conf=0.25)
+
             for object in result[0]:
                 x1, y1, x2, y2 = object.boxes.xyxy.cpu().squeeze()
                 confidence = object.boxes.conf.item()
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
 
-                cropped_image = frame[y1:y2,x1:x2]
-                text = run_recognition(cropped_image,ocr)
+                if object.boxes.id is not None:
+                    track_id = int(object.boxes.id.item())
+                
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
 
-                cv2.rectangle(
-                    frame,
-                    (x1, y1),
-                    (x2, y2),
-                    (0, 255, 0),
-                    2,
-                )
+                    cropped_image = frame[y1:y2,x1:x2]
+                    text = run_recognition(cropped_image,ocr)
+                    if track_id not in ocr_results or text != "":
+                        ocr_results[track_id].append(text)
+                    
+                    aggregated_results[track_id] = max(set(ocr_results[track_id]), key=ocr_results[track_id].count) 
 
-                cv2.putText(
-                    frame,
-                    f"{text} {confidence:.2f}",
-                    (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.9,
-                    (0, 255, 0),
-                    2,
-                )
+                    cv2.rectangle(
+                        frame,
+                        (x1, y1),
+                        (x2, y2),
+                        (0, 255, 0),
+                        2,
+                    )
 
-            # we duplicate some frames : the input is 30 fps and we are not able to process that fast
-            processing_time = time.time() - start_time
-            frames_to_duplicate = max(1, int(processing_time / frame_interval))
+                    cv2.putText(
+                        frame,
+                        f"{track_id} - {aggregated_results[track_id]}",
+                        (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.9,
+                        (0, 255, 0),
+                        2,
+                    )
                 
             if output_path is None:
                 cv2.imshow('Video', frame)
                 cv2.waitKey(1) 
             else:
-                for _ in range(frames_to_duplicate):
-                    queue.put(frame)
+                queue.put(frame)
 
     except KeyboardInterrupt: # Ctrl+C stops the processing
         print("Interrupted! Ending ...")
@@ -260,3 +266,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
