@@ -19,6 +19,9 @@ Authors of the project:
   * results_25epochs_2.png: Visual results summary of the best weights found during tuning (in iteration 2).
   * tune_results_2.csv: Summary of results of tuning for each iteration.
 
+* /src: contains the script that detects, tracks and reads license plates, and a readme file with commands to run it.
+* /input: contains 1 image and 1 video as example input.
+* /output: contains the image and video created as output by the script.
 * /evaluation: directory containing images and videos that were used to evaluate the detection and recognition script.
- * /input: contains the input images and video
- * /output: contains the results of running the script on the input sources
+  * /input: contains the input images and video.
+  * /output: contains the results of running the script on the input sources.
