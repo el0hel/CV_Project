@@ -18,3 +18,7 @@ Authors of the project:
   * model_hyperparameter_tuning_2 : Kaggle notebook where second tuning was conducted (6 iterations, 25 epochs, optimiser set to AdamW).
   * results_25epochs_2.png: Visual results summary of the best weights found during tuning (in iteration 2).
   * tune_results_2.csv: Summary of results of tuning for each iteration.
+
+* /evaluation: directory containing images and videos that were used to evaluate the detection and recognition script.
+ * /input: contains the input images and video
+ * /output: contains the results of running the script on the input sources
