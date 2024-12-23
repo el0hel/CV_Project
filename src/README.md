@@ -38,7 +38,7 @@ python main.py -i <image_path> -o <output_path> -y <yolo_model_path>
 python src/main.py -i .\input\image.png -o .\output\ -y best.pt # example of command to run from the parent repository
 ```
 
-## Passing Directory
+## Passing a Directory
 To process a directory file:
 ```cmd
 python main.py -i <directory_path> -o <output_path> -y <yolo_model_path>
