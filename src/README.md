@@ -3,6 +3,7 @@
 This program detects and recognizes license plates from images or videos using a combination of YOLO for object detection and PaddleOCR for text recognition.
 For a video, it draws the bounding boxes of the found license plates and displays above each of them the id of the tracked object and its license plate number.
 For an image, it draws the bounding boxes of the found license plates and displays above each of them the license plate number and the confidence score of the YOLO model.
+If a directory is passed as input, the program will check all valid images and videos inside and do the detection and recognition accordingly.
 
 ## Requirements
 
@@ -13,7 +14,7 @@ pip install -r requirements.txt
 
 ## Command line arguments
 
-- ```-i or --input (optional)```: Path to the input image file (.jpg, .png, .jpeg) or video ifle (.mp4). If not provided, the script will use the default system camera.
+- ```-i or --input (optional)```: Path to the input image file (.jpg, .png, .jpeg, .bmp), video ifle (.mp4, .mov) or directory. If not provided, the script will use the default system camera.
 - ```-o or --output (optional)```: Path to save the processed output (image or video).  If not provided, the results will be displayed on the default screen.
 - ```-y or --yolo (required)```: Path to the YOLO model.
 - ```-p or --profiler (optional)```: Enable profiling of the program for performance analysis.
