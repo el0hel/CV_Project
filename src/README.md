@@ -39,7 +39,7 @@ python src/main.py -i .\input\image.png -o .\output\ -y best.pt # example of com
 ```
 
 ## Passing Directory
-To process an directory file:
+To process a directory file:
 ```cmd
 python main.py -i <directory_path> -o <output_path> -y <yolo_model_path>
 python src/main.py -i .\input\ -o .\output\ -y best.pt # example of command to run from the parent repository
