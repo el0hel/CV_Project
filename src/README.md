@@ -38,6 +38,14 @@ python main.py -i <image_path> -o <output_path> -y <yolo_model_path>
 python src/main.py -i .\input\image.png -o .\output\ -y best.pt # example of command to run from the parent repository
 ```
 
+## Passing Directory
+To process an directory file:
+```cmd
+python main.py -i <directory_path> -o <output_path> -y <yolo_model_path>
+python src/main.py -i .\input\ -o .\output\ -y best.pt # example of command to run from the parent repository
+```
+
+
 ## Profiling
 Profiling results are saved in ```output/profiling_results.txt```, detailing execution time and function calls.
 To enable profiling add ```-p``` to the command line.
