@@ -38,8 +38,8 @@ def parse_arguments():
     parser = ArgumentParser(
         description="Inference script for detecting and recognising license plates using pre-trained YOLO and OCR model.")
 
-    parser.add_argument("-i", "--input", type=str, required=True, help="Path to the input file or directory.")
-    parser.add_argument("-o", "--output", type=str, required=True, help="Path to the output directory.")
+    parser.add_argument("-i", "--input", type=str, required=False, help="Path to the input file or directory.")
+    parser.add_argument("-o", "--output", type=str, required=False, help="Path to the output directory.")
     parser.add_argument("-y", "--yolo", type=str, required=True, help="Path to the YOLO model.")
     parser.add_argument("-p", "--profiler", type=bool, required=False, help="If set to true, will profile the run.")
 
@@ -79,8 +79,7 @@ def run_detection_video(
     if output_path is not None:
         queue = Queue()
         print("Creating video writer object ...")
-        base_name = os.path.splitext(os.path.basename(video_path))[0]
-        output_file_path = os.path.join(output_path, f"{base_name}_output.avi")
+        output_file_path = os.path.join(output_path, "output.avi")
         video_writer = cv2.VideoWriter(
             output_file_path,
             cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
@@ -260,56 +259,64 @@ def main():
 
     profile = args.profiler
 
-    if os.path.isdir(args.input):
-        for file in os.listdir(args.input):
-            file_path = os.path.join(args.input, file)
+    if args.input != None: # a file or directory for input was provided
+        if os.path.isdir(args.input):   # a directory was provided
+            for file in os.listdir(args.input):
+                file_path = os.path.join(args.input, file)
+                try:
+                    if file.lower().endswith(("mp4", "mov")):
+                        run_detection_video(
+                            yolo=yolo,
+                            ocr=ocr,
+                            video_path=file_path,
+                            output_path=args.output,
+                            profile=profile
+                        )
+                        # Resetting YOLO model after video processing
+                        print("Resetting YOLO model after video processing...")
+                        yolo = YOLO(args.yolo)  # Reinitialising the YOLO model
+                    elif file.lower().endswith(("jpg", "jpeg", "png", "bmp")):
+                        run_detection_image(
+                            yolo=yolo,
+                            ocr=ocr,
+                            image_path=file_path,
+                            output_path=args.output
+                        )
+                    else:
+                        print(f"Unsupported file format: {file}")
+                except Exception as e:
+                    print(f"Error processing file {file}: {e}")
+
+        else: # a file was peovided
             try:
-                if file.lower().endswith(("mp4", "mov")):
+                if args.input.lower().endswith(("mp4", "mov")):
                     run_detection_video(
                         yolo=yolo,
                         ocr=ocr,
-                        video_path=file_path,
+                        video_path=args.input,
                         output_path=args.output,
                         profile=profile
                     )
-                    # Resetting YOLO model after video processing
-                    print("Resetting YOLO model after video processing...")
-                    yolo = YOLO(args.yolo)  # Reinitialising the YOLO model
-                elif file.lower().endswith(("jpg", "jpeg", "png", "bmp")):
+                elif args.input.lower().endswith(("jpg", "jpeg", "png", "bmp")):
                     run_detection_image(
                         yolo=yolo,
                         ocr=ocr,
-                        image_path=file_path,
+                        image_path=args.input,
                         output_path=args.output
                     )
                 else:
-                    print(f"Unsupported file format: {file}")
+                    print(f"Unsupported file format: {args.input}")
+                    exit(1)
             except Exception as e:
-                print(f"Error processing file {file}: {e}")
-
-    else:
-        try:
-            if args.input.lower().endswith(("mp4", "mov")):
-                run_detection_video(
-                    yolo=yolo,
-                    ocr=ocr,
-                    video_path=args.input,
-                    output_path=args.output,
-                    profile=profile
-                )
-            elif args.input.lower().endswith(("jpg", "jpeg", "png", "bmp")):
-                run_detection_image(
-                    yolo=yolo,
-                    ocr=ocr,
-                    image_path=args.input,
-                    output_path=args.output
-                )
-            else:
-                print(f"Unsupported file format: {args.input}")
-                exit(1)
-        except Exception as e:
-            print(f"Error processing input: {e}")
+                print(f"Error processing input: {e}")
+    else:   # take the camera input
+        run_detection_video(
+            yolo=yolo,
+            ocr=ocr,
+            video_path=args.input,
+            output_path=args.output,
+            profile=profile
+        )
 
 if __name__ == "__main__":
     main()
-
